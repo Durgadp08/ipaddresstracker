@@ -3,45 +3,49 @@ import Ma from "./components/Mymap";
 import Details from "./components/details";
 
 function App() {
-  const [data, setData] = useState("");
+  const [data, setData] = useState([]);
   const [ip, setIp] = useState("");
   const [mapCenter, setMapCenter] = useState([51.505, -0.09]);
-  async function getdata() {
-    const response = await fetch("https://ipaddresstracker-api-production.up.railway.app/");
-    const data = await response.json();
-    return data;
-  }
-  const failureMessage = {query:"Sorry pal" , city:"Your", region: "Hmm", zip:"🤨😐😴", timezone:"You'r Undetectable" , isp:"Not Me" }
+  const failureMessage = ["Sorry pal","Your","Hmm","🤨😐😴","You'r Undetectable" ,"Not Me" ]
+  
   useEffect(()=>{
-    getdata()
-    .then(res =>{
-      if(res.status === "success"){
-        setData(res);
-        setMapCenter([res.lat,res.lon]);
-      }
-      else{
-        setData(failureMessage);
-      }
-    } )
-    .catch(err => console.error(err));
-  },[ip])
+  const fetchdata = async ()=>{
+  const response = await  fetch("https://geo.ipify.org/api/v2/country,city?apiKey=at_PAtB9o8f4rbwD82htyCOHvnWoYugD");
+    
+    if(response.ok){
+      const result = await response.json();
+      console.log(result);
+      console.log(`in use efffect`);
+      setData([result.ip,result.location.city, result.location.country,result.location.postalCode,result.location.timezone, result.isp]);
+      
+      setMapCenter([result.location.lat, result.location.lng])
+    }
+    else{ 
+ setData(failureMessage);
+    }
+}
+    fetchdata ();
+  },[])
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const data = { input: ip };
-    console.log(data);
-    const options = {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    };
-    console.log(options.body);
-    const response = await fetch("https://ipaddresstracker-api-production.up.railway.app/", options);
-    const result = await response.json();
-    console.log(result);
+    const response = await fetch(`https://geo.ipify.org/api/v2/country,city?apiKey=at_PAtB9o8f4rbwD82htyCOHvnWoYugD&ipAddress=${ip}&domain=${ip}`);
+    console.log(response);
+console.log(`in submit function`);
+      if(response.ok){
+      const result = await response.json();
+      console.log(result);
+      setData([result.ip,result.location.city, result.location.country,result.location.postalCode,result.location.timezone, result.isp]);
+      
+      setMapCenter([result.location.lat, result.location.lng])
+    }
+    else{ 
+ setData(failureMessage);
+    }
     setIp('');
   }
- 
+console.log(`down here`);
+ console.log(data);
   return (
     <div>
       <div className="image">
@@ -67,8 +71,8 @@ function App() {
             </form>
           </div>
           <div className="box">
-            <Details data={data.status==="success" ? data :failureMessage }/>
-          </div>
+            <Details data={data}/>
+           </div>
         </div>
       </div>
 
